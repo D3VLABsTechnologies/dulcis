@@ -28,30 +28,24 @@ type OrderItems = {
   [key: number]: OrderItem;
 }
 
-const menuItems = {
-  meals: [
-    { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', sizes: ['Small', 'Regular', 'Family'] },
-    { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', sizes: ['Small', 'Regular', 'Family'] },
-    { id: 6, name: 'French fries with burger', price: 35, icon: '🍟🍔', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 7, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍔🍗', sizes: ['Small', 'Medium', 'Large'] },
-  ],
-  snacks: [
-    { id: 8, name: 'Spicy chicken wings', price: 35, icon: '🍗🌶️', sizes: ['6 pcs', '12 pcs', '18 pcs'] },
-    { id: 9, name: 'Pizza', price: 45, icon: '🍕', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 10, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'] },
-    { id: 11, name: 'Pie', price: 15, icon: '🥧', sizes: ['Slice', 'Whole'] },
-    { id: 12, name: 'Popsicle', price: 5, icon: '🍦', sizes: ['Regular'] },
-  ],
-  drinks: [
-    { id: 13, name: 'Boba', price: 15, icon: '🧋', sizes: ['Regular', 'Large'] },
-    { id: 14, name: 'Sobolo Drink', price: 10, icon: '🍹', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 15, name: 'Asana Drink', price: 10, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
-    { id: 16, name: 'Smoothie', price: 18, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
-  ],
-}
+const menuItems = [
+  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', sizes: ['Small', 'Regular', 'Family'] },
+  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', sizes: ['Small', 'Regular', 'Family'] },
+  { id: 6, name: 'Spicy chicken wings', price: 35, icon: '🍗🌶️', sizes: ['6 pcs', '12 pcs', '18 pcs'] },
+  { id: 7, name: 'Pizza', price: 45, icon: '🍕', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍔🍗', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 10, name: 'Boba', price: 15, icon: '🧋', sizes: ['Regular', 'Large'] },
+  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
+  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', sizes: ['Regular'] },
+  { id: 14, name: 'Pie', price: 15, icon: '🥧', sizes: ['Slice', 'Whole'] },
+  { id: 15, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'] },
+  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
+]
 
 const generateRandomPosition = (seed: number) => {
   // Use a seeded random number generator
@@ -213,7 +207,7 @@ export default function DulcisFeedbackForm() {
   }
 
   const handleAddItem = (itemId: number) => {
-    const item = flatMenuItems.find(item => item.id === itemId)
+    const item = menuItems.find(item => item.id === itemId)
     if (item) {
       setOrderItems(prev => ({
         ...prev,
@@ -253,11 +247,38 @@ export default function DulcisFeedbackForm() {
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log({ orderItems, date, branch, suggestion })
-    setShowSuccess(true)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const feedbackData = {
+      orderItems: Object.values(orderItems).map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        size: item.size,
+        price: getItemPrice(item)
+      })),
+      total: calculateTotal(),
+      date,
+      branch,
+      suggestion
+    };
+  
+    try {
+      const response = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feedbackData),
+      });
+  
+      if (response.ok) {
+        setShowSuccess(true); // Show success animation
+      } else {
+        console.error('Submission failed');
+      }
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+    }
+  };
+  
 
   const handleSuccessClose = () => {
     setShowSuccess(false)
@@ -269,17 +290,14 @@ export default function DulcisFeedbackForm() {
 
   const selectContentStyles = `
   data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
-  relative z-50 min-w-[8rem] max-w-[calc(100vw-2rem)] max-h-[300px] overflow-hidden rounded-md border bg-white/80 backdrop-blur-lg shadow-md dark:bg-gray-800/80
+  relative z-50 min-w-[8rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border bg-white/80 backdrop-blur-lg shadow-md dark:bg-gray-800/80
 `
 
   const glowColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8']
 
-  // Add this helper function to flatten the menu items
-  const flatMenuItems = [...menuItems.meals, ...menuItems.snacks, ...menuItems.drinks]
-
   return (
     <div className={`min-h-screen py-6 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ease-in-out relative overflow-hidden ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-b from-orange-100 to-yellow-100'}`}>
-      {flatMenuItems.map((item, index) => (
+      {menuItems.map((item, index) => (
         <FloatingIcon 
           key={item.id} 
           icon={item.icon} 
@@ -318,43 +336,8 @@ export default function DulcisFeedbackForm() {
                 <SelectTrigger id="order" className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                   <SelectValue placeholder="Select items to add" />
                 </SelectTrigger>
-                <SelectContent 
-                  className={selectContentStyles}
-                  position="popper"
-                  side="bottom"
-                  align="start"
-                  sideOffset={4}
-                >
-                  <div className="font-semibold px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400">Meals</div>
-                  {menuItems.meals.map((item) => (
-                    <SelectItem 
-                      key={item.id} 
-                      value={item.id.toString()}
-                      className="flex items-start gap-2 whitespace-normal pr-4"
-                    >
-                      <span className="flex-shrink-0">{item.icon}</span>
-                      <span className="flex-1 min-w-0">
-                        {item.name} - GHS {item.price.toFixed(2)}
-                      </span>
-                    </SelectItem>
-                  ))}
-                  
-                  <div className="font-semibold px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 border-t mt-1">Snacks</div>
-                  {menuItems.snacks.map((item) => (
-                    <SelectItem 
-                      key={item.id} 
-                      value={item.id.toString()}
-                      className="flex items-start gap-2 whitespace-normal pr-4"
-                    >
-                      <span className="flex-shrink-0">{item.icon}</span>
-                      <span className="flex-1 min-w-0">
-                        {item.name} - GHS {item.price.toFixed(2)}
-                      </span>
-                    </SelectItem>
-                  ))}
-                  
-                  <div className="font-semibold px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 border-t mt-1">Drinks</div>
-                  {menuItems.drinks.map((item) => (
+                <SelectContent className={selectContentStyles}>
+                  {menuItems.map((item) => (
                     <SelectItem 
                       key={item.id} 
                       value={item.id.toString()}
@@ -441,13 +424,7 @@ export default function DulcisFeedbackForm() {
                   <SelectTrigger id="branch" className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
-                  <SelectContent 
-                    className={selectContentStyles}
-                    position="popper"
-                    side="bottom"
-                    align="start"
-                    sideOffset={4}
-                  >
+                  <SelectContent className={selectContentStyles}>
                     <SelectItem value="downtown">JEGA Hostel</SelectItem>
                     <SelectItem value="uptown">GUSS Hostel</SelectItem>
                     <SelectItem value="suburb">Town</SelectItem>
