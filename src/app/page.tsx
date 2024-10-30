@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Plus, Minus, Trash2, Check } from 'lucide-react'
+import { Calendar, Plus, Minus, Trash2, Check, Star } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactConfetti from 'react-confetti'
 
@@ -243,6 +243,114 @@ const selectContentStyles = `
   before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-white/5 dark:before:from-white/5 dark:before:to-transparent
 `;
 
+const MobileDatePicker = ({ 
+  isOpen, 
+  onClose, 
+  onSelect, 
+  initialDate,
+  darkMode 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSelect: (date: string) => void;
+  initialDate?: string;
+  darkMode: boolean;
+}) => {
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return initialDate || new Date().toISOString().split('T')[0];
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className={`w-full max-h-[90vh] rounded-t-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+      >
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+          <button
+            className="text-gray-500 dark:text-gray-400"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="text-orange-500 font-semibold"
+            onClick={() => {
+              onSelect(selectedDate);
+              onClose();
+            }}
+          >
+            Done
+          </button>
+        </div>
+        <div className="p-4">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className={`w-full p-4 text-lg rounded-lg border ${
+              darkMode 
+                ? 'bg-gray-700 text-white border-gray-600' 
+                : 'bg-white border-gray-200'
+            }`}
+            style={{ 
+              colorScheme: darkMode ? 'dark' : 'light',
+            }}
+          />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const StarRating = ({ 
+  rating, 
+  onRatingChange, 
+  darkMode 
+}: { 
+  rating: number; 
+  onRatingChange: (rating: number) => void;
+  darkMode: boolean;
+}) => {
+  const [hoverRating, setHoverRating] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`transition-transform duration-200 ${
+            hoverRating >= star || rating >= star
+              ? 'text-yellow-400 scale-110'
+              : `${darkMode ? 'text-gray-600' : 'text-gray-300'}`
+          } hover:scale-125`}
+          onMouseEnter={() => setHoverRating(star)}
+          onMouseLeave={() => setHoverRating(0)}
+          onClick={() => {
+            onRatingChange(star);
+          }}
+        >
+          <Star
+            className={`w-8 h-8 sm:w-10 sm:h-10 ${
+              hoverRating >= star || rating >= star ? 'fill-current' : ''
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export default function DulcisFeedbackForm() {
   const [orderItems, setOrderItems] = useState<OrderItems>({})
   const [date, setDate] = useState('')
@@ -252,6 +360,9 @@ export default function DulcisFeedbackForm() {
   const [darkMode, setDarkMode] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const dateInputRef = useRef<HTMLInputElement>(null)
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [rating, setRating] = useState(0);
 
   useLayoutEffect(() => {
     setMounted(true)
@@ -292,6 +403,10 @@ export default function DulcisFeedbackForm() {
     return () => {
       document.head.removeChild(styleSheet);
     };
+  }, []);
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
   }, []);
 
   if (!mounted) {
@@ -351,7 +466,8 @@ export default function DulcisFeedbackForm() {
       total: calculateTotal(),
       date,
       branch,
-      suggestion
+      suggestion,
+      rating
     };
   
     try {
@@ -521,26 +637,42 @@ export default function DulcisFeedbackForm() {
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-base sm:text-lg font-medium">Date of Purchase/Visit</Label>
                 <div className="relative w-full">
-                  <Input
-                    id="date"
-                    type="date"
-                    ref={dateInputRef}
-                    value={date}
-                    onChange={(e) => {
-                      triggerHaptic();
-                      setDate(e.target.value);
-                    }}
-                    className={`w-full ${
-                      darkMode ? 'bg-gray-700 text-white' : ''
-                    } pr-8`}
-                    style={{ 
-                      colorScheme: darkMode ? 'dark' : 'light',
-                    }}
-                  />
-                  <Calendar 
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" 
-                    size={20}
-                  />
+                  {isMobile ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        darkMode ? 'bg-gray-700 text-white' : ''
+                      }`}
+                      onClick={() => setIsDatePickerOpen(true)}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {date ? new Date(date).toLocaleDateString() : 'Select date'}
+                    </Button>
+                  ) : (
+                    <Input
+                      id="date"
+                      type="date"
+                      ref={dateInputRef}
+                      value={date}
+                      onChange={(e) => {
+                        triggerHaptic();
+                        setDate(e.target.value);
+                      }}
+                      className={`w-full ${
+                        darkMode ? 'bg-gray-700 text-white' : ''
+                      } pr-8`}
+                      style={{ 
+                        colorScheme: darkMode ? 'dark' : 'light',
+                      }}
+                    />
+                  )}
+                  {!isMobile && (
+                    <Calendar 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" 
+                      size={20}
+                    />
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -565,6 +697,26 @@ export default function DulcisFeedbackForm() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rating" className="text-base sm:text-lg font-medium">Rate Your Order</Label>
+              <div className="flex flex-col items-center space-y-2 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <StarRating 
+                  rating={rating} 
+                  onRatingChange={(newRating) => {
+                    triggerHaptic();
+                    setRating(newRating);
+                  }}
+                  darkMode={darkMode}
+                />
+                <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {rating === 0 ? 'Tap to rate' : 
+                   rating === 1 ? 'Poor' :
+                   rating === 2 ? 'Fair' :
+                   rating === 3 ? 'Good' :
+                   rating === 4 ? 'Very Good' : 'Excellent'}
+                </span>
               </div>
             </div>
             <div className="space-y-2">
@@ -598,6 +750,17 @@ export default function DulcisFeedbackForm() {
       </Card>
       <AnimatePresence>
         {showSuccess && <SuccessAnimation onComplete={handleSuccessClose} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isDatePickerOpen && (
+          <MobileDatePicker
+            isOpen={isDatePickerOpen}
+            onClose={() => setIsDatePickerOpen(false)}
+            onSelect={setDate}
+            initialDate={date}
+            darkMode={darkMode}
+          />
+        )}
       </AnimatePresence>
     </div>
   )

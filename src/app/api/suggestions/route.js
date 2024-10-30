@@ -1,92 +1,157 @@
 // src/app/api/suggestions/route.js
 
-export async function POST(req) {
-  console.log("Incoming request:", req);
-  try {
-    const { orderItems, total, date, branch, suggestion } = await req.json();
-    console.log("Received data:", {
-      orderItems,
-      total,
-      date,
-      branch,
-      suggestion,
-    });
+// API route for handling customer feedback submissions
+// This endpoint processes feedback data and sends it to a Telegram channel
 
-    // Validate input data
-    if (!Array.isArray(orderItems) || orderItems.length === 0) {
-      console.error("Invalid orderItems:", orderItems);
-      return new Response(JSON.stringify({ error: "Invalid order items" }), {
+export async function POST(req) {
+  // Add CORS headers for security
+  const headers = {
+    "Access-Control-Allow-Origin":
+      process.env.NODE_ENV === "production"
+        ? "https://productiondomain.com" // Replace with production domain
+        : "http://localhost:3000",
+    "Access-Control-Allow-Methods": "POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  try {
+    const { orderItems, total, date, branch, suggestion, rating } =
+      await req.json();
+
+    // Input validation
+    if (!orderItems?.length || !date || !branch) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers }
+      );
+    }
+
+    // Sanitize and validate total amount
+    const sanitizedTotal = parseFloat(total);
+    if (isNaN(sanitizedTotal) || sanitizedTotal < 0) {
+      return new Response(JSON.stringify({ error: "Invalid total amount" }), {
         status: 400,
+        headers,
       });
     }
 
-    // Access environment variables for Telegram bot token and chat ID
+    // Validate environment variables
     const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TELEGRAM_TOKEN || !CHAT_ID) {
-      console.error("Missing Telegram Token or Chat ID");
+      console.error("Missing environment variables");
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
-        { status: 500 }
+        { status: 500, headers }
       );
     }
 
-    // Construct the order items list for the message
+    // Sanitize and format order items
     const formattedOrderItems = orderItems
-      .map(
-        (item) =>
-          `🍽️ *${item.quantity} x ${item.name}* (${
-            item.size
-          }) - GHS ${item.price.toFixed(2)}`
-      )
+      .map((item) => {
+        // Sanitize numeric values
+        const quantity = parseInt(item.quantity);
+        const price = parseFloat(item.price);
+
+        if (isNaN(quantity) || isNaN(price)) {
+          throw new Error("Invalid order item data");
+        }
+
+        // Escape special Markdown characters
+        const sanitizedName = item.name.replace(
+          /[_*[\]()~`>#+=|{}.!-]/g,
+          "\\$&"
+        );
+        const sanitizedSize = item.size.replace(
+          /[_*[\]()~`>#+=|{}.!-]/g,
+          "\\$&"
+        );
+
+        return `🍽️ *${quantity} x ${sanitizedName}* (${sanitizedSize}) - GHS ${price.toFixed(
+          2
+        )}`;
+      })
       .join("\n");
 
-    // Format the message for Telegram with Markdown
+    // Sanitize suggestion text
+    const sanitizedSuggestion = suggestion
+      ? suggestion.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&")
+      : "No suggestion provided";
+
+    // Construct message with sanitized data
     const message = `
-🚀 *New Customer Feedback Received!*
+🚀 *New Customer Feedback*
 
 🗓️ *Date:* ${date} | 📍 *Branch:* ${branch}
+
+⭐ *Rating:* ${rating ? "".padStart(rating, "⭐") : "Not rated"}
 
 🎉 *Order Summary:*
 ${formattedOrderItems}
 
-💵 *Total Amount:* _GHS ${total.toFixed(2)}_
+💵 *Total:* _GHS ${sanitizedTotal.toFixed(2)}_
 
-💬 *Customer Suggestion:*
-"${suggestion}"
+💬 *Feedback:*
+"${sanitizedSuggestion}"
 
 ---
-    `;
+    `.trim();
 
-    // Send the message to the specified Telegram chat ID with Markdown parsing
-    const telegramURL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-    const response = await fetch(telegramURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: "Markdown",
-      }),
-    });
+    // Send to Telegram with a longer timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // Increased to 10s
 
-    if (!response.ok) {
-      console.error(
-        "Failed to send message to Telegram:",
-        await response.text()
+    try {
+      const telegramResponse = await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Connection: "keep-alive",
+          },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message,
+            parse_mode: "Markdown",
+          }),
+          signal: controller.signal,
+        }
       );
-      throw new Error("Failed to send message to Telegram");
-    }
 
-    return new Response(
-      JSON.stringify({ message: "Feedback sent successfully!" }),
-      { status: 200 }
-    );
+      clearTimeout(timeoutId);
+
+      if (!telegramResponse.ok) {
+        const errorText = await telegramResponse.text();
+        throw new Error(`Telegram API error: ${errorText}`);
+      }
+
+      return new Response(
+        JSON.stringify({ message: "Feedback sent successfully!" }),
+        { status: 200, headers }
+      );
+    } catch (fetchError) {
+      if (fetchError.name === "AbortError") {
+        return new Response(
+          JSON.stringify({
+            error: "Request timeout - please try again",
+            details: "The request took too long to complete",
+          }),
+          { status: 408, headers }
+        );
+      }
+      throw fetchError;
+    }
   } catch (error) {
-    console.error("API route error:", error);
-    return new Response(JSON.stringify({ error: "Failed to send feedback" }), {
-      status: 500,
-    });
+    console.error("Feedback submission error:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Failed to process feedback",
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      }),
+      { status: 500, headers }
+    );
   }
 }

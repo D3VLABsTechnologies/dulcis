@@ -1,6 +1,6 @@
 import qrcode
 
-url = 'http://172.20.10.4:3000'
+url = 'http://192.168.114.64:3000'
 
 qrcode.make(url).save("qrcode.png")
 
