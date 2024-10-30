@@ -1,3 +1,4 @@
+//page.tsx
 'use client'
 
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
@@ -10,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar, Plus, Minus, Trash2, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ReactConfetti from 'react-confetti'
+
 
 type MenuItem = {
   id: number;
@@ -17,6 +20,7 @@ type MenuItem = {
   price: number;
   icon: string;
   sizes: string[];
+  category: 'Meals' | 'Drinks' | 'Snacks';
 }
 
 type OrderItem = MenuItem & {
@@ -28,23 +32,28 @@ type OrderItems = {
   [key: number]: OrderItem;
 }
 
-const menuItems = [
-  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', sizes: ['Small', 'Regular', 'Family'] },
-  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', sizes: ['Small', 'Regular', 'Family'] },
-  { id: 6, name: 'Spicy chicken wings', price: 35, icon: '🍗🌶️', sizes: ['6 pcs', '12 pcs', '18 pcs'] },
-  { id: 7, name: 'Pizza', price: 45, icon: '🍕', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍔🍗', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 10, name: 'Boba', price: 15, icon: '🧋', sizes: ['Regular', 'Large'] },
-  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
-  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', sizes: ['Regular'] },
-  { id: 14, name: 'Pie', price: 15, icon: '🥧', sizes: ['Slice', 'Whole'] },
-  { id: 15, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'] },
-  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', sizes: ['Small', 'Medium', 'Large'] },
+const menuItems: MenuItem[] = [
+  // Meals
+  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', sizes: ['Small', 'Regular', 'Family'], category: 'Meals' },
+  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', sizes: ['Small', 'Regular', 'Family'], category: 'Meals' },
+  { id: 6, name: 'Spicy chicken wings', price: 35, icon: '🍗🌶️', sizes: ['6 pcs', '12 pcs', '18 pcs'], category: 'Meals' },
+  { id: 7, name: 'Pizza', price: 45, icon: '🍕', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍔🍗', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  
+  // Drinks
+  { id: 10, name: 'Boba', price: 15, icon: '🧋', sizes: ['Regular', 'Large'], category: 'Drinks' },
+  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
+  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
+  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
+  
+  // Snacks
+  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', sizes: ['Regular'], category: 'Snacks' },
+  { id: 14, name: 'Pie', price: 15, icon: '🥧', sizes: ['Slice', 'Whole'], category: 'Snacks' },
+  { id: 15, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'], category: 'Snacks' },
 ]
 
 const generateRandomPosition = (seed: number) => {
@@ -117,56 +126,122 @@ const GlowLight = ({ seed, color }: { seed: number; color: string }) => {
   );
 };
 
-const SuccessAnimation = ({ onComplete }: { onComplete: () => void }) => (
-  <motion.div
-    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-  >
+const SuccessAnimation = ({ onComplete }: { onComplete: () => void }) => {
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  
+  useEffect(() => {
+    // Update window size
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
+
+  return (
     <motion.div
-      className="bg-white rounded-lg p-8 flex flex-col items-center max-w-sm mx-4"
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.8, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
+      <ReactConfetti
+        width={windowSize.width}
+        height={windowSize.height}
+        recycle={false}
+        numberOfPieces={200}
+        gravity={0.2}
+        colors={['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8']}
+      />
       <motion.div
-        className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mb-4"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 flex flex-col items-center max-w-[280px] sm:max-w-sm mx-auto relative"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
-        <Check className="text-white" size={48} />
+        <motion.div
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500 rounded-full flex items-center justify-center mb-4"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+        >
+          <Check className="text-white w-8 h-8 sm:w-10 sm:h-10" />
+        </motion.div>
+        <motion.h2
+          className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          Thank You!
+        </motion.h2>
+        <motion.p
+          className="text-gray-600 dark:text-gray-300 text-center text-sm sm:text-base"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          Your feedback has been successfully submitted.
+        </motion.p>
+        <motion.button
+          className="mt-6 px-6 py-2 bg-orange-500 text-white text-sm sm:text-base rounded-full hover:bg-orange-600 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+          onClick={onComplete}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          Close
+        </motion.button>
       </motion.div>
-      <motion.h2
-        className="text-2xl font-bold text-gray-800 mb-2 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        Thank You!
-      </motion.h2>
-      <motion.p
-        className="text-gray-600 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        Your feedback has been successfully submitted.
-      </motion.p>
-      <motion.button
-        className="mt-6 px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
-        onClick={onComplete}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        Close
-      </motion.button>
     </motion.div>
-  </motion.div>
-)
+  );
+};
+
+// Add this near the top of the file, before any component definitions
+const glowColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+
+// Update the styles definitions
+const styles = `
+  /* Improve the date input appearance on mobile */
+  input[type="date"] {
+    min-height: 2.5rem;
+    -webkit-appearance: none;
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .select-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+`;
+
+const selectContentStyles = `
+  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
+  relative z-50 min-w-[8rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-md 
+  border border-gray-200 dark:border-gray-600 
+  bg-white/60 dark:bg-gray-800/60 
+  backdrop-blur-xl
+  shadow-lg 
+  before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-white/5 dark:before:from-white/5 dark:before:to-transparent
+`;
 
 export default function DulcisFeedbackForm() {
   const [orderItems, setOrderItems] = useState<OrderItems>({})
@@ -201,6 +276,23 @@ export default function DulcisFeedbackForm() {
       document.documentElement.classList.remove('dark')
     }
   }, [darkMode])
+
+  // Function to trigger haptic feedback (vibration)
+  const triggerHaptic = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10); // 10ms vibration
+    }
+  };
+
+  // Add useEffect for styles
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
 
   if (!mounted) {
     return null
@@ -286,14 +378,9 @@ export default function DulcisFeedbackForm() {
     setDate('')
     setBranch('')
     setSuggestion('')
+    //Reload the page after closing the success animation
+    window.location.reload();
   }
-
-  const selectContentStyles = `
-  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
-  relative z-50 min-w-[8rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border bg-white/80 backdrop-blur-lg shadow-md dark:bg-gray-800/80
-`
-
-  const glowColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8']
 
   return (
     <div className={`min-h-screen py-6 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ease-in-out relative overflow-hidden ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-b from-orange-100 to-yellow-100'}`}>
@@ -332,22 +419,38 @@ export default function DulcisFeedbackForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="order" className="text-base sm:text-lg font-medium">Please select the items you had</Label>
-              <Select onValueChange={(value) => handleAddItem(parseInt(value))}>
+              <Select 
+                onValueChange={(value) => {
+                  triggerHaptic();
+                  handleAddItem(parseInt(value));
+                }}
+              >
                 <SelectTrigger id="order" className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                   <SelectValue placeholder="Select items to add" />
                 </SelectTrigger>
                 <SelectContent className={selectContentStyles}>
-                  {menuItems.map((item) => (
-                    <SelectItem 
-                      key={item.id} 
-                      value={item.id.toString()}
-                      className="flex items-start gap-2 whitespace-normal pr-4"
-                    >
-                      <span className="flex-shrink-0">{item.icon}</span>
-                      <span className="flex-1 min-w-0">
-                        {item.name} - GHS {item.price.toFixed(2)}
-                      </span>
-                    </SelectItem>
+                  {['Meals', 'Drinks', 'Snacks'].map((category) => (
+                    <div key={category}>
+                      <div className={`px-2 py-1.5 text-sm font-semibold border-t first:border-t-0 border-gray-200 dark:border-gray-600 ${
+                        darkMode ? 'text-gray-300 bg-gray-800/50' : 'text-gray-600 bg-gray-50/50'
+                      }`}>
+                        {category}
+                      </div>
+                      {menuItems
+                        .filter(item => item.category === category)
+                        .map((item) => (
+                          <SelectItem 
+                            key={item.id} 
+                            value={item.id.toString()}
+                            className="flex items-start gap-2 whitespace-normal pr-4 ml-2 hover:bg-white/20 dark:hover:bg-gray-700/50 cursor-pointer data-[highlighted]:bg-white/20 dark:data-[highlighted]:bg-gray-700/50 backdrop-blur-sm transition-colors duration-200"
+                          >
+                            <span className="flex-shrink-0">{item.icon}</span>
+                            <span className="flex-1 min-w-0">
+                              {item.name} - GHS {item.price.toFixed(2)}
+                            </span>
+                          </SelectItem>
+                        ))}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
@@ -361,8 +464,14 @@ export default function DulcisFeedbackForm() {
                   </span>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {item.sizes && (
-                      <Select value={item.size} onValueChange={(size) => handleSizeChange(item.id, size)}>
-                        <SelectTrigger className={`w-24 ${darkMode ? 'bg-gray-600 text-white' : ''}`}>
+                      <Select 
+                        value={item.size} 
+                        onValueChange={(size) => {
+                          triggerHaptic();
+                          handleSizeChange(item.id, size);
+                        }}
+                      >
+                        <SelectTrigger className={`w-full border-gray-200 dark:border-gray-600 ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                           <SelectValue>{item.size}</SelectValue>
                         </SelectTrigger>
                         <SelectContent className={selectContentStyles}>
@@ -373,11 +482,27 @@ export default function DulcisFeedbackForm() {
                       </Select>
                     )}
                     <div className="flex items-center">
-                      <Button type="button" size="sm" variant="outline" onClick={() => handleQuantityChange(item.id, -1)}>
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          triggerHaptic();
+                          handleQuantityChange(item.id, -1);
+                        }}
+                      >
                         <Minus className="h-4 w-4" />
                       </Button>
                       <span className="mx-2 text-lg font-medium">{item.quantity}</span>
-                      <Button type="button" size="sm" variant="outline" onClick={() => handleQuantityChange(item.id, 1)}>
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          triggerHaptic();
+                          handleQuantityChange(item.id, 1);
+                        }}
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -395,39 +520,49 @@ export default function DulcisFeedbackForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-base sm:text-lg font-medium">Date of Purchase/Visit</Label>
-                <div className="relative w-full flex items-center">
+                <div className="relative w-full">
                   <Input
                     id="date"
                     type="date"
                     ref={dateInputRef}
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}
+                    onChange={(e) => {
+                      triggerHaptic();
+                      setDate(e.target.value);
+                    }}
+                    className={`w-full ${
+                      darkMode ? 'bg-gray-700 text-white' : ''
+                    } pr-8`}
                     style={{ 
                       colorScheme: darkMode ? 'dark' : 'light',
                     }}
                   />
-                  <div 
-                    className="absolute right-3 flex items-center justify-center cursor-pointer"
-                    onClick={() => dateInputRef.current?.showPicker()}
-                  >
-                    <Calendar 
-                      className="text-gray-400" 
-                      size={20}
-                    />
-                  </div>
+                  <Calendar 
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" 
+                    size={20}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="branch" className="text-base sm:text-lg font-medium">DULCIS Branch</Label>
                 <Select value={branch} onValueChange={setBranch}>
-                  <SelectTrigger id="branch" className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
+                  <SelectTrigger id="branch" className={`w-full border-gray-200 dark:border-gray-600 ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
-                  <SelectContent className={selectContentStyles}>
-                    <SelectItem value="JEGA Hostel">JEGA Hostel</SelectItem>
-                    <SelectItem value="GUSS Hostel">GUSS Hostel</SelectItem>
-                    <SelectItem value="Town">Town</SelectItem>
+                  <SelectContent className={`${selectContentStyles} w-full min-w-[200px]`}>
+                    {["JEGA Hostel", "GUSS Hostel", "Town"].map((branchName) => (
+                      <SelectItem 
+                        key={branchName} 
+                        value={branchName}
+                        className="px-4 py-2 hover:bg-white/20 dark:hover:bg-gray-700/50 
+                          cursor-pointer 
+                          data-[highlighted]:bg-white/20 dark:data-[highlighted]:bg-gray-700/50
+                          backdrop-blur-sm
+                          transition-colors duration-200"
+                      >
+                        {branchName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -457,7 +592,7 @@ export default function DulcisFeedbackForm() {
             Submit Feedback
           </Button>
           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Powered by <span className="font-semibold">D3V.LABs</span>
+            Powered by <span className="font-semibold">D3V.LABs</span> &copy; 2024
           </div>
         </CardFooter>
       </Card>

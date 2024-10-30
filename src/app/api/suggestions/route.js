@@ -36,7 +36,7 @@ export async function POST(req) {
     const formattedOrderItems = orderItems
       .map(
         (item) =>
-          `- *${item.quantity} x ${item.name}* (${
+          `🍽️ *${item.quantity} x ${item.name}* (${
             item.size
           }) - GHS ${item.price.toFixed(2)}`
       )
@@ -44,17 +44,19 @@ export async function POST(req) {
 
     // Format the message for Telegram with Markdown
     const message = `
-📩 *New Customer Suggestion*
+🚀 *New Customer Feedback Received!*
 
-📝 *Order Details:*
+🗓️ *Date:* ${date} | 📍 *Branch:* ${branch}
+
+🎉 *Order Summary:*
 ${formattedOrderItems}
 
-💰 *Total:* GHS ${total.toFixed(2)}
-📅 *Date:* ${date}
-📍 *Branch:* ${branch}
+💵 *Total Amount:* _GHS ${total.toFixed(2)}_
 
-💡 *Customer Suggestion:*
+💬 *Customer Suggestion:*
 "${suggestion}"
+
+---
     `;
 
     // Send the message to the specified Telegram chat ID with Markdown parsing
