@@ -1,4 +1,4 @@
-// src/app/api/suggestions/routes.js
+// src/app/api/suggestions/route.js
 
 export async function POST(req) {
   console.log("Incoming request:", req);
@@ -36,28 +36,38 @@ export async function POST(req) {
     const formattedOrderItems = orderItems
       .map(
         (item) =>
-          `${item.quantity} x ${item.name} (${
+          `- *${item.quantity} x ${item.name}* (${
             item.size
           }) - GHS ${item.price.toFixed(2)}`
       )
       .join("\n");
 
-    // Format the message for Telegram
+    // Format the message for Telegram with Markdown
     const message = `
-        📩 New Suggestion:
-        - Items:
-        ${formattedOrderItems}
-        - Total: GHS ${total.toFixed(2)}
-        - Date: ${date}
-        - Branch: ${branch}
-        - Suggestion: "${suggestion}"
-      `;
+📩 *New Customer Suggestion*
 
-    // Send the message to the specified Telegram chat ID
-    const telegramURL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(
-      message
-    )}`;
-    const response = await fetch(telegramURL);
+📝 *Order Details:*
+${formattedOrderItems}
+
+💰 *Total:* GHS ${total.toFixed(2)}
+📅 *Date:* ${date}
+📍 *Branch:* ${branch}
+
+💡 *Customer Suggestion:*
+"${suggestion}"
+    `;
+
+    // Send the message to the specified Telegram chat ID with Markdown parsing
+    const telegramURL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+    const response = await fetch(telegramURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+      }),
+    });
 
     if (!response.ok) {
       console.error(

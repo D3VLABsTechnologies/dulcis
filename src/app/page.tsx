@@ -425,9 +425,9 @@ export default function DulcisFeedbackForm() {
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
                   <SelectContent className={selectContentStyles}>
-                    <SelectItem value="downtown">JEGA Hostel</SelectItem>
-                    <SelectItem value="uptown">GUSS Hostel</SelectItem>
-                    <SelectItem value="suburb">Town</SelectItem>
+                    <SelectItem value="JEGA Hostel">JEGA Hostel</SelectItem>
+                    <SelectItem value="GUSS Hostel">GUSS Hostel</SelectItem>
+                    <SelectItem value="Town">Town</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
