@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Plus, Minus, Trash2, Check, Star } from 'lucide-react'
+import { Calendar, Plus, Minus, Trash2, Check, Star, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactConfetti from 'react-confetti'
 
-
+//Types for menu and order items
 type MenuItem = {
   id: number;
   name: string;
@@ -29,9 +29,10 @@ type OrderItem = MenuItem & {
 }
 
 type OrderItems = {
-  [key: number]: OrderItem;
+  [key: string]: OrderItem;
 }
 
+// Menu data with categorized items
 const menuItems: MenuItem[] = [
   // Meals
   { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
@@ -56,6 +57,11 @@ const menuItems: MenuItem[] = [
   { id: 15, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'], category: 'Snacks' },
 ]
 
+
+/**
+ * Generates a deterministic random position based on a seed value
+ * Used for creating consistent but random-looking floating animations
+ */
 const generateRandomPosition = (seed: number) => {
   // Use a seeded random number generator
   const random = (seed: number) => {
@@ -69,6 +75,9 @@ const generateRandomPosition = (seed: number) => {
   };
 };
 
+/**
+ * Animated floating icon component that moves in a continuous pattern
+ */
 const FloatingIcon = ({ icon, seed, color }: { icon: string; seed: number; color: string }) => {
   const position = useMemo(() => generateRandomPosition(seed), [seed]);
   
@@ -99,6 +108,9 @@ const FloatingIcon = ({ icon, seed, color }: { icon: string; seed: number; color
   );
 };
 
+/**
+ * Animated glowing light effect component that creates ambient background lighting effects
+ */
 const GlowLight = ({ seed, color }: { seed: number; color: string }) => {
   const position = useMemo(() => generateRandomPosition(seed + 100), [seed]);
   
@@ -202,7 +214,6 @@ const SuccessAnimation = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-// Add this near the top of the file, before any component definitions
 const glowColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
 
 // Update the styles definitions
@@ -242,6 +253,21 @@ const selectContentStyles = `
   shadow-lg 
   before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-white/5 dark:before:from-white/5 dark:before:to-transparent
 `;
+
+const generateDateOptions = () => {
+  const today = new Date();
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const years = Array.from(
+    { length: 2 }, 
+    (_, i) => (today.getFullYear() - i).toString()
+  );
+  
+  return { days, months, years };
+};
 
 const MobileDatePicker = ({ 
   isOpen, 
@@ -312,6 +338,9 @@ const MobileDatePicker = ({
   );
 };
 
+/**
+ * Interactive star rating component with hover effects
+ */
 const StarRating = ({ 
   rating, 
   onRatingChange, 
@@ -351,7 +380,68 @@ const StarRating = ({
   );
 };
 
+// Add this new component after SuccessAnimation
+const ErrorAnimation = ({ onClose, message }: { onClose: () => void; message: string }) => {
+  return (
+    <motion.div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 flex flex-col items-center max-w-[280px] sm:max-w-sm mx-auto relative"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      >
+        <motion.div
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500 rounded-full flex items-center justify-center mb-4"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+        >
+          <X className="text-white w-8 h-8 sm:w-10 sm:h-10" />
+        </motion.div>
+        <motion.h2
+          className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          Submission Failed
+        </motion.h2>
+        <motion.p
+          className="text-gray-600 dark:text-gray-300 text-center text-sm sm:text-base"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          {message}
+        </motion.p>
+        <motion.button
+          className="mt-6 px-6 py-2 bg-red-500 text-white text-sm sm:text-base rounded-full hover:bg-red-600 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+          onClick={onClose}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          Try Again
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+/**
+ * Main feedback form component: Handles order selection, ratings, and feedback submission
+ */
 export default function DulcisFeedbackForm() {
+  // Add isSubmitting to the state variables
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // State management for form data and UI
   const [orderItems, setOrderItems] = useState<OrderItems>({})
   const [date, setDate] = useState('')
   const [branch, setBranch] = useState('')
@@ -363,7 +453,10 @@ export default function DulcisFeedbackForm() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [rating, setRating] = useState(0);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
+// Initialize dark mode based on system preferences
   useLayoutEffect(() => {
     setMounted(true)
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -380,6 +473,7 @@ export default function DulcisFeedbackForm() {
     }
   }, [])
 
+  // Apply dark mode class to document root (Updates whenever dark mode state changes)
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
@@ -416,32 +510,78 @@ export default function DulcisFeedbackForm() {
   const handleAddItem = (itemId: number) => {
     const item = menuItems.find(item => item.id === itemId)
     if (item) {
+      const orderKey = `${itemId}-${item.sizes[0]}`;
       setOrderItems(prev => ({
         ...prev,
-        [itemId]: { ...item, quantity: (prev[itemId]?.quantity || 0) + 1, size: item.sizes[0] }
+        [orderKey]: { 
+          ...item, 
+          quantity: 1, 
+          size: item.sizes[0] 
+        }
       }))
     }
   }
 
-  const handleQuantityChange = (itemId: number, change: number) => {
+  const handleQuantityChange = (itemId: number | string, size: string, change: number) => {
+    // Convert itemId to number if it's a string
+    const numericId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+    const orderKey = `${numericId}-${size}`;
+    
     setOrderItems(prev => {
-      const newQuantity = (prev[itemId]?.quantity || 0) + change
+      const newQuantity = (prev[orderKey]?.quantity || 0) + change;
       if (newQuantity <= 0) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [itemId]: removed, ...rest } = prev
-        return rest
+        const { [orderKey]: removed, ...rest } = prev;
+        return rest;
       }
-      return { ...prev, [itemId]: { ...prev[itemId], quantity: newQuantity } }
-    })
+
+      // If the item doesn't exist yet, create it
+      if (!prev[orderKey]) {
+        const menuItem = menuItems.find(item => item.id === numericId);
+        if (!menuItem) return prev;
+        
+        return {
+          ...prev,
+          [orderKey]: {
+            ...menuItem,
+            quantity: newQuantity,
+            size: size
+          }
+        };
+      }
+
+      // Update existing item
+      return { 
+        ...prev, 
+        [orderKey]: { 
+          ...prev[orderKey], 
+          quantity: newQuantity 
+        } 
+      };
+    });
   }
 
-  const handleSizeChange = (itemId: number, size: string) => {
-    setOrderItems(prev => ({
-      ...prev,
-      [itemId]: { ...prev[itemId], size }
-    }))
+  const handleSizeChange = (itemId: number | string, oldSize: string, newSize: string) => {
+    // Convert itemId to number if it's a string
+    const numericId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+    const oldKey = `${numericId}-${oldSize}`;
+    const newKey = `${numericId}-${newSize}`;
+    
+    setOrderItems(prev => {
+      const { [oldKey]: currentItem, ...rest } = prev;
+      if (!currentItem) return prev;
+
+      return {
+        ...rest,
+        [newKey]: {
+          ...currentItem,
+          size: newSize
+        }
+      };
+    });
   }
 
+  // Calculate the total price for an order item and apply size based adjustments
   const getItemPrice = (item: OrderItem) => {
     const basePrice = item.price
     const sizeIndex = item.sizes.indexOf(item.size)
@@ -454,8 +594,11 @@ export default function DulcisFeedbackForm() {
     )
   }
 
+  // Handle form submission and API interaction
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     const feedbackData = {
       orderItems: Object.values(orderItems).map(item => ({
         name: item.name,
@@ -469,24 +612,43 @@ export default function DulcisFeedbackForm() {
       suggestion,
       rating
     };
-  
+
     try {
-      const response = await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(feedbackData),
-      });
-  
+      const response = await Promise.race([
+        fetch('/api/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(feedbackData),
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), 10000)
+        )
+      ]);
+
       if (response.ok) {
-        setShowSuccess(true); // Show success animation
+        setShowSuccess(true);
       } else {
-        console.error('Submission failed');
+        const errorData = await response.json().catch(() => ({ message: 'An unexpected error occurred' }));
+        setErrorMessage(errorData.message || 'Failed to submit feedback. Please try again.');
+        setShowError(true);
       }
     } catch (error) {
-      console.error('Error sending feedback:', error);
+      setErrorMessage(
+        error.message === 'Request timed out'
+          ? 'Request timed out. Please check your connection and try again.'
+          : 'An error occurred while submitting your feedback. Please try again.'
+      );
+      setShowError(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
+
+  // Add a function to handle error close
+  const handleErrorClose = () => {
+    setShowError(false);
+    setErrorMessage('');
+  };
 
   const handleSuccessClose = () => {
     setShowSuccess(false)
@@ -544,12 +706,18 @@ export default function DulcisFeedbackForm() {
                 <SelectTrigger id="order" className={`w-full ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
                   <SelectValue placeholder="Select items to add" />
                 </SelectTrigger>
-                <SelectContent className={selectContentStyles}>
+                <SelectContent 
+                  className={`${selectContentStyles} select-none`}
+                  style={{ position: 'relative' }}
+                >
                   {['Meals', 'Drinks', 'Snacks'].map((category) => (
                     <div key={category}>
-                      <div className={`px-2 py-1.5 text-sm font-semibold border-t first:border-t-0 border-gray-200 dark:border-gray-600 ${
-                        darkMode ? 'text-gray-300 bg-gray-800/50' : 'text-gray-600 bg-gray-50/50'
-                      }`}>
+                      <div className={`px-3 py-2 text-sm font-semibold border-t first:border-t-0 
+                        ${darkMode 
+                          ? 'bg-gray-700/90 text-orange-400 border-gray-600' 
+                          : 'bg-orange-100/90 text-orange-800 border-orange-200'
+                        } backdrop-blur-sm`}
+                      >
                         {category}
                       </div>
                       {menuItems
@@ -558,7 +726,12 @@ export default function DulcisFeedbackForm() {
                           <SelectItem 
                             key={item.id} 
                             value={item.id.toString()}
-                            className="flex items-start gap-2 whitespace-normal pr-4 ml-2 hover:bg-white/20 dark:hover:bg-gray-700/50 cursor-pointer data-[highlighted]:bg-white/20 dark:data-[highlighted]:bg-gray-700/50 backdrop-blur-sm transition-colors duration-200"
+                            className="flex items-start gap-2 whitespace-normal pr-4 ml-2 
+                              hover:bg-white/20 dark:hover:bg-gray-700/50 
+                              cursor-pointer 
+                              data-[highlighted]:bg-white/20 dark:data-[highlighted]:bg-gray-700/50 
+                              backdrop-blur-sm 
+                              transition-colors duration-200"
                           >
                             <span className="flex-shrink-0">{item.icon}</span>
                             <span className="flex-1 min-w-0">
@@ -572,8 +745,10 @@ export default function DulcisFeedbackForm() {
               </Select>
             </div>
             <div className="space-y-4">
-              {Object.values(orderItems).map((item) => (
-                <div key={item.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+              {Object.entries(orderItems).map(([orderKey, item]) => {
+                const [itemId, currentSize] = orderKey.split('-');
+                return (
+                  <div key={orderKey} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                   <span className="flex items-center mb-2 sm:mb-0">
                     <span className="mr-2 text-2xl">{item.icon}</span>
                     <span className="font-medium">{item.name}</span>
@@ -581,14 +756,14 @@ export default function DulcisFeedbackForm() {
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {item.sizes && (
                       <Select 
-                        value={item.size} 
-                        onValueChange={(size) => {
+                          value={currentSize} 
+                          onValueChange={(newSize) => {
                           triggerHaptic();
-                          handleSizeChange(item.id, size);
+                            handleSizeChange(item.id, currentSize, newSize);
                         }}
                       >
                         <SelectTrigger className={`w-full border-gray-200 dark:border-gray-600 ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
-                          <SelectValue>{item.size}</SelectValue>
+                            <SelectValue>{currentSize}</SelectValue>
                         </SelectTrigger>
                         <SelectContent className={selectContentStyles}>
                           {item.sizes.map((size) => (
@@ -604,7 +779,7 @@ export default function DulcisFeedbackForm() {
                         variant="outline" 
                         onClick={() => {
                           triggerHaptic();
-                          handleQuantityChange(item.id, -1);
+                            handleQuantityChange(item.id, currentSize, -1);
                         }}
                       >
                         <Minus className="h-4 w-4" />
@@ -616,19 +791,27 @@ export default function DulcisFeedbackForm() {
                         variant="outline" 
                         onClick={() => {
                           triggerHaptic();
-                          handleQuantityChange(item.id, 1);
+                            handleQuantityChange(item.id, currentSize, 1);
                         }}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Button type="button" size="sm" variant="destructive" onClick={() => handleQuantityChange(item.id, -item.quantity)}>
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="destructive" 
+                        onClick={() => handleQuantityChange(item.id, currentSize, -item.quantity)}
+                      >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <span className="text-sm font-medium">GHS  {(getItemPrice(item) * item.quantity).toFixed(2)}</span>
+                      <span className="text-sm font-medium">
+                        GHS {(getItemPrice(item) * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className={`text-right text-xl sm:text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
               Total: GHS {calculateTotal().toFixed(2)}
@@ -740,8 +923,16 @@ export default function DulcisFeedbackForm() {
                 : 'bg-orange-500 hover:bg-orange-600 text-white'
             }`}
             onClick={handleSubmit}
+            disabled={isSubmitting}
           >
-            Submit Feedback
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Submitting...</span>
+              </div>
+            ) : (
+              'Submit Feedback'
+            )}
           </Button>
           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Powered by <span className="font-semibold">D3V.LABs</span> &copy; 2024
@@ -759,6 +950,14 @@ export default function DulcisFeedbackForm() {
             onSelect={setDate}
             initialDate={date}
             darkMode={darkMode}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showError && (
+          <ErrorAnimation 
+            onClose={handleErrorClose}
+            message={errorMessage}
           />
         )}
       </AnimatePresence>
