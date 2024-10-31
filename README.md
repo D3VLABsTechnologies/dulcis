@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DULCIS Feedback Form
+
+A modern, interactive feedback form for DULCIS restaurant built with Next.js 13+, TypeScript, and Tailwind CSS. The form features a beautiful UI with animated backgrounds, dark mode support, and a responsive design.
+
+![DULCIS Feedback Form](screenshot.png)
+
+## Features
+
+- 🎨 Modern UI with animated floating icons and ambient lighting effects
+- 🌓 Automatic dark mode based on system preferences
+- 📱 Fully responsive design for all devices
+- 💫 Smooth animations and transitions
+- 🔄 Interactive order management system
+- ⭐ Star rating system
+- 📅 Custom date picker for mobile devices
+- 💫 Success and error animations
+- 📲 Haptic feedback on mobile devices
+- 🌐 PWA ready with manifest.json
+- 🔗 Social media integration with X (Twitter), Instagram, and TikTok
+
+## Tech Stack
+
+- [Next.js 13+](https://nextjs.org/) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Framer Motion](https://www.framer.com/motion/) - Animations
+- [Lucide Icons](https://lucide.dev/) - Icons
+- [shadcn/ui](https://ui.shadcn.com/) - UI Components
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+
+```bash
+git clone https://github.com/D3VLABsTechnologies/dulcis.git
+```
+
+2. Install dependencies:
+
+```bash
+cd dulcis
+npm install
+```
+
+3. Create a `.env.local` file in the root directory and add your environment variables:
+
+```env
+TELEGRAM_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+dulcis/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── suggestions/
+│   │   │       └── route.js
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
+│   ├── components/
+│   │   └── ui/
+│   └── lib/
+├── public/
+│   ├── logo.jpg
+│   ├── favicon.ico
+│   ├── tiktok.svg
+│   ├── twitterx.svg
+│   └── manifest.json
+└── package.json
+```
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+The app can be deployed on [Vercel](https://vercel.com/) with zero configuration:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributing
 
-## Deploy on Vercel
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- UI Components by [shadcn/ui](https://ui.shadcn.com/)
+- Icons by [Lucide](https://lucide.dev/)
+- Animations powered by [Framer Motion](https://www.framer.com/motion/)
+
+## Contact
+
+For any queries or suggestions, please contact:
+
+- Email: projects@d3vlabs.com
+- X (Twitter): [@d3v.labs](https://twitter.com/d3v.labs)
+
+## Social Media
+
+Follow DULCIS on:
+
+- X (Twitter): [@dulcisgh](https://x.com/dulcisgh)
+- Instagram: [@dulcis_gh](https://instagram.com/dulcis_gh)
+- TikTok: [@dulcisgh](https://tiktok.com/@dulcisgh)
+
+---
+
+Powered by D3V.LABs &copy; 2024.

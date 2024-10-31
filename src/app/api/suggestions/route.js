@@ -15,11 +15,10 @@ export async function POST(req) {
   };
 
   try {
-    const { orderItems, total, date, branch, suggestion, rating } =
-      await req.json();
+    const { orderItems, total, date, suggestion, rating } = await req.json();
 
     // Input validation
-    if (!orderItems?.length || !date || !branch) {
+    if (!orderItems?.length || !date) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers }
@@ -63,14 +62,8 @@ export async function POST(req) {
           /[_*[\]()~`>#+=|{}.!-]/g,
           "\\$&"
         );
-        const sanitizedSize = item.size.replace(
-          /[_*[\]()~`>#+=|{}.!-]/g,
-          "\\$&"
-        );
 
-        return `🍽️ *${quantity} x ${sanitizedName}* (${sanitizedSize}) - GHS ${price.toFixed(
-          2
-        )}`;
+        return `🍽️ *${quantity} x ${sanitizedName}* - GHS ${price.toFixed(2)}`;
       })
       .join("\n");
 
@@ -83,7 +76,8 @@ export async function POST(req) {
     const message = `
 🚀 *New Customer Feedback*
 
-🗓️ *Date:* ${date} | 📍 *Branch:* ${branch}
+🗓️ *Date:* ${date}
+📍 *Branch:* JEGA Hostel
 
 ⭐ *Rating:* ${rating ? "".padStart(rating, "⭐") : "Not rated"}
 

@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar, Plus, Minus, Trash2, Check, Star, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactConfetti from 'react-confetti'
+import { Instagram } from 'lucide-react'
+
 
 //Types for menu and order items
 type MenuItem = {
@@ -19,13 +21,11 @@ type MenuItem = {
   name: string;
   price: number;
   icon: string;
-  sizes: string[];
   category: 'Meals' | 'Drinks' | 'Snacks';
 }
 
 type OrderItem = MenuItem & {
   quantity: number;
-  size: string;
 }
 
 type OrderItems = {
@@ -35,26 +35,26 @@ type OrderItems = {
 // Menu data with categorized items
 const menuItems: MenuItem[] = [
   // Meals
-  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
-  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
-  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
-  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', sizes: ['Small', 'Regular', 'Family'], category: 'Meals' },
-  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', sizes: ['Small', 'Regular', 'Family'], category: 'Meals' },
-  { id: 6, name: 'Spicy chicken wings', price: 35, icon: '🍗🌶️', sizes: ['6 pcs', '12 pcs', '18 pcs'], category: 'Meals' },
-  { id: 7, name: 'Pizza', price: 45, icon: '🍕', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
-  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
-  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍔🍗', sizes: ['Small', 'Medium', 'Large'], category: 'Meals' },
+  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', category: 'Meals' },
+  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', category: 'Meals' },
+  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', category: 'Meals' },
+  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', category: 'Meals' },
+  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', category: 'Meals' },
+  { id: 6, name: 'Spicy chicken wings (6 pcs)', price: 35, icon: '🍗🌶️', category: 'Meals' },
+  { id: 7, name: 'Pizza', price: 45, icon: '🍕', category: 'Meals' },
+  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', category: 'Meals' },
+  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍗', category: 'Meals' },
   
   // Drinks
-  { id: 10, name: 'Boba', price: 15, icon: '🧋', sizes: ['Regular', 'Large'], category: 'Drinks' },
-  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
-  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
-  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', sizes: ['Small', 'Medium', 'Large'], category: 'Drinks' },
+  { id: 10, name: 'Boba', price: 15, icon: '🧋', category: 'Drinks' },
+  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', category: 'Drinks' },
+  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', category: 'Drinks' },
+  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', category: 'Drinks' },
   
   // Snacks
-  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', sizes: ['Regular'], category: 'Snacks' },
-  { id: 14, name: 'Pie', price: 15, icon: '🥧', sizes: ['Slice', 'Whole'], category: 'Snacks' },
-  { id: 15, name: 'Spring rolls', price: 20, icon: '🥠', sizes: ['4 pcs', '8 pcs'], category: 'Snacks' },
+  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', category: 'Snacks' },
+  { id: 14, name: 'Pie', price: 15, icon: '🥧', category: 'Snacks' },
+  { id: 15, name: 'Spring rolls (4 pcs)', price: 20, icon: '🥠', category: 'Snacks' },
 ]
 
 
@@ -444,7 +444,6 @@ export default function DulcisFeedbackForm() {
   // State management for form data and UI
   const [orderItems, setOrderItems] = useState<OrderItems>({})
   const [date, setDate] = useState('')
-  const [branch, setBranch] = useState('')
   const [suggestion, setSuggestion] = useState('')
   const [mounted, setMounted] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
@@ -510,22 +509,21 @@ export default function DulcisFeedbackForm() {
   const handleAddItem = (itemId: number) => {
     const item = menuItems.find(item => item.id === itemId)
     if (item) {
-      const orderKey = `${itemId}-${item.sizes[0]}`;
+      const orderKey = `${itemId}`;
       setOrderItems(prev => ({
         ...prev,
         [orderKey]: { 
           ...item, 
-          quantity: 1, 
-          size: item.sizes[0] 
+          quantity: 1
         }
       }))
     }
   }
 
-  const handleQuantityChange = (itemId: number | string, size: string, change: number) => {
+  const handleQuantityChange = (itemId: number | string, change: number) => {
     // Convert itemId to number if it's a string
     const numericId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
-    const orderKey = `${numericId}-${size}`;
+    const orderKey = `${numericId}`;
     
     setOrderItems(prev => {
       const newQuantity = (prev[orderKey]?.quantity || 0) + change;
@@ -544,8 +542,7 @@ export default function DulcisFeedbackForm() {
           ...prev,
           [orderKey]: {
             ...menuItem,
-            quantity: newQuantity,
-            size: size
+            quantity: newQuantity
           }
         };
       }
@@ -561,36 +558,9 @@ export default function DulcisFeedbackForm() {
     });
   }
 
-  const handleSizeChange = (itemId: number | string, oldSize: string, newSize: string) => {
-    // Convert itemId to number if it's a string
-    const numericId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
-    const oldKey = `${numericId}-${oldSize}`;
-    const newKey = `${numericId}-${newSize}`;
-    
-    setOrderItems(prev => {
-      const { [oldKey]: currentItem, ...rest } = prev;
-      if (!currentItem) return prev;
-
-      return {
-        ...rest,
-        [newKey]: {
-          ...currentItem,
-          size: newSize
-        }
-      };
-    });
-  }
-
-  // Calculate the total price for an order item and apply size based adjustments
-  const getItemPrice = (item: OrderItem) => {
-    const basePrice = item.price
-    const sizeIndex = item.sizes.indexOf(item.size)
-    return basePrice * (1 + sizeIndex * 0.2)
-  }
-
   const calculateTotal = () => {
     return Object.values(orderItems).reduce((total: number, item: OrderItem) => 
-      total + getItemPrice(item) * item.quantity, 0
+      total + item.price * item.quantity, 0
     )
   }
 
@@ -604,11 +574,11 @@ export default function DulcisFeedbackForm() {
         name: item.name,
         quantity: item.quantity,
         size: item.size,
-        price: getItemPrice(item)
+        price: item.price
       })),
       total: calculateTotal(),
       date,
-      branch,
+      branch: 'JEGA Hostel',
       suggestion,
       rating
     };
@@ -654,7 +624,6 @@ export default function DulcisFeedbackForm() {
     setShowSuccess(false)
     setOrderItems({})
     setDate('')
-    setBranch('')
     setSuggestion('')
     //Reload the page after closing the success animation
     window.location.reload();
@@ -745,33 +714,13 @@ export default function DulcisFeedbackForm() {
               </Select>
             </div>
             <div className="space-y-4">
-              {Object.entries(orderItems).map(([orderKey, item]) => {
-                const [itemId, currentSize] = orderKey.split('-');
-                return (
-                  <div key={orderKey} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+              {Object.entries(orderItems).map(([orderKey, item]) => (
+                <div key={orderKey} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                   <span className="flex items-center mb-2 sm:mb-0">
                     <span className="mr-2 text-2xl">{item.icon}</span>
                     <span className="font-medium">{item.name}</span>
                   </span>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    {item.sizes && (
-                      <Select 
-                          value={currentSize} 
-                          onValueChange={(newSize) => {
-                          triggerHaptic();
-                            handleSizeChange(item.id, currentSize, newSize);
-                        }}
-                      >
-                        <SelectTrigger className={`w-full border-gray-200 dark:border-gray-600 ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
-                            <SelectValue>{currentSize}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent className={selectContentStyles}>
-                          {item.sizes.map((size) => (
-                            <SelectItem key={size} value={size}>{size}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
                     <div className="flex items-center">
                       <Button 
                         type="button" 
@@ -779,7 +728,7 @@ export default function DulcisFeedbackForm() {
                         variant="outline" 
                         onClick={() => {
                           triggerHaptic();
-                            handleQuantityChange(item.id, currentSize, -1);
+                          handleQuantityChange(item.id, -1);
                         }}
                       >
                         <Minus className="h-4 w-4" />
@@ -791,33 +740,32 @@ export default function DulcisFeedbackForm() {
                         variant="outline" 
                         onClick={() => {
                           triggerHaptic();
-                            handleQuantityChange(item.id, currentSize, 1);
+                          handleQuantityChange(item.id, 1);
                         }}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                      <Button 
-                        type="button" 
-                        size="sm" 
-                        variant="destructive" 
-                        onClick={() => handleQuantityChange(item.id, currentSize, -item.quantity)}
-                      >
+                    <Button 
+                      type="button" 
+                      size="sm" 
+                      variant="destructive" 
+                      onClick={() => handleQuantityChange(item.id, -item.quantity)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                      <span className="text-sm font-medium">
-                        GHS {(getItemPrice(item) * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
+                    <span className="text-sm font-medium">
+                      GHS {(item.price * item.quantity).toFixed(2)}
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
             <div className={`text-right text-xl sm:text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
               Total: GHS {calculateTotal().toFixed(2)}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
+            <div className="w-full">
+              <div className="space-y-2 max-w-md mx-auto">
                 <Label htmlFor="date" className="text-base sm:text-lg font-medium">Date of Purchase/Visit</Label>
                 <div className="relative w-full">
                   {isMobile ? (
@@ -858,29 +806,6 @@ export default function DulcisFeedbackForm() {
                   )}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="branch" className="text-base sm:text-lg font-medium">DULCIS Branch</Label>
-                <Select value={branch} onValueChange={setBranch}>
-                  <SelectTrigger id="branch" className={`w-full border-gray-200 dark:border-gray-600 ${darkMode ? 'bg-gray-700 text-white' : ''}`}>
-                    <SelectValue placeholder="Select branch" />
-                  </SelectTrigger>
-                  <SelectContent className={`${selectContentStyles} w-full min-w-[200px]`}>
-                    {["JEGA Hostel", "GUSS Hostel", "Town"].map((branchName) => (
-                      <SelectItem 
-                        key={branchName} 
-                        value={branchName}
-                        className="px-4 py-2 hover:bg-white/20 dark:hover:bg-gray-700/50 
-                          cursor-pointer 
-                          data-[highlighted]:bg-white/20 dark:data-[highlighted]:bg-gray-700/50
-                          backdrop-blur-sm
-                          transition-colors duration-200"
-                      >
-                        {branchName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="rating" className="text-base sm:text-lg font-medium">Rate Your Order</Label>
@@ -903,7 +828,7 @@ export default function DulcisFeedbackForm() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="suggestion" className="text-base sm:text-lg font-medium">Your Feedback</Label>
+              <Label htmlFor="suggestion" className="text-base sm:text-lg font-medium">Anonymous Feedback</Label>
               <Textarea
                 id="suggestion"
                 placeholder="Please share your thoughts on our service or food..."
@@ -934,6 +859,47 @@ export default function DulcisFeedbackForm() {
               'Submit Feedback'
             )}
           </Button>
+          
+          {/* Social Media Links */}
+          <div className="flex items-center gap-4 mt-2">
+            <a 
+              href="https://x.com/dulcisgh" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`hover:scale-110 transition-transform ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+            >
+              <Image 
+                src="/twitterx.svg" 
+                alt="X (Twitter)" 
+                width={20} 
+                height={20}
+                className={darkMode ? 'invert' : ''}
+              />
+            </a>
+            <a 
+              href="https://instagram.com/dulcis_gh" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`hover:scale-110 transition-transform ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+            >
+              <Instagram size={20} />
+            </a>
+            <a 
+              href="https://tiktok.com/@dulcisgh" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`hover:scale-110 transition-transform ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+            >
+              <Image 
+                src="/tiktok.svg" 
+                alt="TikTok" 
+                width={18} 
+                height={18}
+                className={darkMode ? 'invert' : ''}
+              />
+            </a>
+          </div>
+
           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Powered by <span className="font-semibold">D3V.LABs</span> &copy; 2024
           </div>
