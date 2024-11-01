@@ -1,14 +1,12 @@
-// src/app/api/suggestions/route.js
-
 // API route for handling customer feedback submissions
 // This endpoint processes feedback data and sends it to a Telegram channel
 
 export async function POST(req) {
-  // Add CORS headers for security
+  // CORS headers for security
   const headers = {
     "Access-Control-Allow-Origin":
       process.env.NODE_ENV === "production"
-        ? "https://dulcis.vercel.app" // Replace with your actual Vercel domain
+        ? "https://dulcisfeedback.vercel.app"
         : "http://localhost:3000",
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": "Content-Type",
