@@ -19,7 +19,6 @@ import { Instagram } from 'lucide-react'
 type MenuItem = {
   id: number;
   name: string;
-  price: number;
   icon: string;
   category: 'Meals' | 'Drinks' | 'Snacks';
 }
@@ -35,26 +34,28 @@ type OrderItems = {
 // Menu data with categorized items
 const menuItems: MenuItem[] = [
   // Meals
-  { id: 1, name: 'French fries with chicken', price: 25, icon: '🍟🍗', category: 'Meals' },
-  { id: 2, name: 'French fries with Sausage', price: 23, icon: '🍟🌭', category: 'Meals' },
-  { id: 3, name: 'Loaded fries', price: 30, icon: '🍟🧀', category: 'Meals' },
-  { id: 4, name: 'Fried rice with chicken', price: 28, icon: '🍚🍗', category: 'Meals' },
-  { id: 5, name: 'Assorted Fried rice', price: 32, icon: '🍚🥓', category: 'Meals' },
-  { id: 6, name: 'Spicy chicken wings (6 pcs)', price: 35, icon: '🍗🌶️', category: 'Meals' },
-  { id: 7, name: 'Pizza', price: 45, icon: '🍕', category: 'Meals' },
-  { id: 8, name: 'French fries with burger', price: 35, icon: '🍟🍔', category: 'Meals' },
-  { id: 9, name: 'French fries with burger and chicken', price: 40, icon: '🍟🍗', category: 'Meals' },
+  { id: 1, name: 'French fries with chicken', icon: '🍟🍗', category: 'Meals' },
+  { id: 2, name: 'French fries with Sausage', icon: '🍟🌭', category: 'Meals' },
+  { id: 3, name: 'Loaded fries', icon: '🍟🧀', category: 'Meals' },
+  { id: 4, name: 'Fried rice with chicken', icon: '🍚🍗', category: 'Meals' },
+  { id: 5, name: 'Assorted Fried rice', icon: '🍚🥓', category: 'Meals' },
+  { id: 6, name: 'Spicy chicken wings', icon: '🍗🌶️', category: 'Meals' },
+  { id: 7, name: 'Pizza', icon: '🍕', category: 'Meals' },
+  { id: 8, name: 'French fries with burger', icon: '🍟🍔', category: 'Meals' },
+  { id: 9, name: 'French fries with burger and chicken', icon: '🍟🍔🍗', category: 'Meals' },
   
   // Drinks
-  { id: 10, name: 'Boba', price: 15, icon: '🧋', category: 'Drinks' },
-  { id: 11, name: 'Sobolo Drink', price: 10, icon: '🍹', category: 'Drinks' },
-  { id: 12, name: 'Asana Drink', price: 10, icon: '🥤', category: 'Drinks' },
-  { id: 16, name: 'Smoothie', price: 18, icon: '🥤', category: 'Drinks' },
+  { id: 10, name: 'Boba', icon: '🧋', category: 'Drinks' },
+  { id: 11, name: 'Sobolo Drink', icon: '🍹', category: 'Drinks' },
+  { id: 12, name: 'Asana Drink', icon: '🥤', category: 'Drinks' },
+  { id: 16, name: 'Smoothie', icon: '🥤', category: 'Drinks' },
   
   // Snacks
-  { id: 13, name: 'Popsicle', price: 5, icon: '🍦', category: 'Snacks' },
-  { id: 14, name: 'Pie', price: 15, icon: '🥧', category: 'Snacks' },
-  { id: 15, name: 'Spring rolls (4 pcs)', price: 20, icon: '🥠', category: 'Snacks' },
+  { id: 13, name: 'Popsicle', icon: '🍦', category: 'Snacks' },
+  { id: 14, name: 'Pie', icon: '🥧', category: 'Snacks' },
+  { id: 15, name: 'Spring rolls', icon: '🥠', category: 'Snacks' },
+  { id: 17, name: 'Sausage roll', icon: '🌭', category: 'Snacks' },
+  { id: 18, name: 'Ice cream', icon: '🍦', category: 'Snacks' },
 ]
 
 
@@ -253,21 +254,6 @@ const selectContentStyles = `
   shadow-lg 
   before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-white/5 dark:before:from-white/5 dark:before:to-transparent
 `;
-
-const generateDateOptions = () => {
-  const today = new Date();
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  const years = Array.from(
-    { length: 2 }, 
-    (_, i) => (today.getFullYear() - i).toString()
-  );
-  
-  return { days, months, years };
-};
 
 const MobileDatePicker = ({ 
   isOpen, 
@@ -558,12 +544,6 @@ export default function DulcisFeedbackForm() {
     });
   }
 
-  const calculateTotal = () => {
-    return Object.values(orderItems).reduce((total: number, item: OrderItem) => 
-      total + item.price * item.quantity, 0
-    )
-  }
-
   // Handle form submission and API interaction
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -572,13 +552,9 @@ export default function DulcisFeedbackForm() {
     const feedbackData = {
       orderItems: Object.values(orderItems).map(item => ({
         name: item.name,
-        quantity: item.quantity,
-        size: item.size,
-        price: item.price
+        quantity: item.quantity
       })),
-      total: calculateTotal(),
       date,
-      branch: 'JEGA Hostel',
       suggestion,
       rating
     };
@@ -593,7 +569,7 @@ export default function DulcisFeedbackForm() {
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Request timed out')), 10000)
         )
-      ]);
+      ]) as Response;
 
       if (response.ok) {
         setShowSuccess(true);
@@ -602,9 +578,9 @@ export default function DulcisFeedbackForm() {
         setErrorMessage(errorData.message || 'Failed to submit feedback. Please try again.');
         setShowError(true);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       setErrorMessage(
-        error.message === 'Request timed out'
+        (error as Error).message === 'Request timed out'
           ? 'Request timed out. Please check your connection and try again.'
           : 'An error occurred while submitting your feedback. Please try again.'
       );
@@ -704,7 +680,7 @@ export default function DulcisFeedbackForm() {
                           >
                             <span className="flex-shrink-0">{item.icon}</span>
                             <span className="flex-1 min-w-0">
-                              {item.name} - GHS {item.price.toFixed(2)}
+                              {item.name}
                             </span>
                           </SelectItem>
                         ))}
@@ -754,15 +730,9 @@ export default function DulcisFeedbackForm() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <span className="text-sm font-medium">
-                      GHS {(item.price * item.quantity).toFixed(2)}
-                    </span>
                   </div>
                 </div>
               ))}
-            </div>
-            <div className={`text-right text-xl sm:text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-              Total: GHS {calculateTotal().toFixed(2)}
             </div>
             <div className="w-full">
               <div className="space-y-2 max-w-md mx-auto">

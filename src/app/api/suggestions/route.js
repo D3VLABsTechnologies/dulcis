@@ -8,14 +8,14 @@ export async function POST(req) {
   const headers = {
     "Access-Control-Allow-Origin":
       process.env.NODE_ENV === "production"
-        ? "https://productiondomain.com" // Replace with production domain
+        ? "https://dulcis.vercel.app" // Replace with your actual Vercel domain
         : "http://localhost:3000",
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 
   try {
-    const { orderItems, total, date, suggestion, rating } = await req.json();
+    const { orderItems, date, suggestion, rating } = await req.json();
 
     // Input validation
     if (!orderItems?.length || !date) {
@@ -23,15 +23,6 @@ export async function POST(req) {
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers }
       );
-    }
-
-    // Sanitize and validate total amount
-    const sanitizedTotal = parseFloat(total);
-    if (isNaN(sanitizedTotal) || sanitizedTotal < 0) {
-      return new Response(JSON.stringify({ error: "Invalid total amount" }), {
-        status: 400,
-        headers,
-      });
     }
 
     // Validate environment variables
@@ -51,9 +42,8 @@ export async function POST(req) {
       .map((item) => {
         // Sanitize numeric values
         const quantity = parseInt(item.quantity);
-        const price = parseFloat(item.price);
 
-        if (isNaN(quantity) || isNaN(price)) {
+        if (isNaN(quantity)) {
           throw new Error("Invalid order item data");
         }
 
@@ -63,7 +53,7 @@ export async function POST(req) {
           "\\$&"
         );
 
-        return `🍽️ *${quantity} x ${sanitizedName}* - GHS ${price.toFixed(2)}`;
+        return `🍽️ *${quantity} x ${sanitizedName}*`;
       })
       .join("\n");
 
@@ -83,8 +73,6 @@ export async function POST(req) {
 
 🎉 *Order Summary:*
 ${formattedOrderItems}
-
-💵 *Total:* _GHS ${sanitizedTotal.toFixed(2)}_
 
 💬 *Feedback:*
 "${sanitizedSuggestion}"

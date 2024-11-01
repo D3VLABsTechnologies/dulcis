@@ -108,7 +108,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For any queries or suggestions, please contact:
 
 - Email: projects@d3vlabs.com
-- X (Twitter): [@d3v.labs](https://twitter.com/d3v.labs)
+- X (Twitter): [@d3v.labs](https://twitter.com/yourusername)
 
 ## Social Media
 
