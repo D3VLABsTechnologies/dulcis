@@ -871,7 +871,7 @@ export default function DulcisFeedbackForm() {
           </div>
 
           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Powered by <span className="font-semibold">D3V.LABs</span> &copy; 2024
+            Powered by <span className="font-semibold">D3V.LABs</span> &copy; {new Date().getFullYear()}
           </div>
         </CardFooter>
       </Card>
